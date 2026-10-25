@@ -9,16 +9,23 @@ set(prefix __ld_gtest)
 # 1.11.0 introduced various matchers that can be used with EXPECT_THAT (e.g., ThrowsMessage)
 set(required_version 1.11.0)
 
+# Allow caller to force building googletest from source
+option(FORCE_BUILD_GTEST "Force building googletest instead of using the system version" OFF)
+
 if(TARGET gtest)
     __cmake_scripts_log("target gtest found, not setting up again")
 else()
     pkg_check_modules(${prefix} gtest>=${required_version} IMPORTED_TARGET)
 
-    if(${prefix}_FOUND)
+    if(${prefix}_FOUND AND NOT FORCE_BUILD_GTEST)
         __cmake_scripts_log("Using system gtest")
         add_library(gtest ALIAS PkgConfig::${prefix})
     else()
-        __cmake_scripts_log("googletest not found or too old on system, fetching from GitHub")
+        if(FORCE_BUILD_GTEST)
+            __cmake_scripts_log("FORCE_BUILD_GTEST enabled, building googletest from source")
+        else()
+            __cmake_scripts_log("googletest not found or too old on system, fetching from GitHub")
+        endif()
 
         include(FetchContent)
 
